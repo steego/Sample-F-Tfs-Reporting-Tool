@@ -1,0 +1,35 @@
+                                        // if record is active, we may need to generate records for previous
+                                        // weeks in this iteration
+//                                        if (devTaskCommitment.taskState = "Active") then
+//                                            [1 .. (currentWeekInIteration-1) ]
+//                                            |> List.iter(fun i -> let overrideCompleted = 
+//                                                                        getInterimCompleted t currentIteration i
+//                                                                  if overrideCompleted.Length > 0 then
+//                                                                    let priorTask = createTaskCommitment t developerLayout us
+//                                                                    priorTask.completedWork <- overrideCompleted
+//                                                                                                |> List.last
+//                                                                                                |> (fun fc -> float (fc.postChangeeValue.ToString()))
+//                                                                  let overrideRemaining =
+//                                                                    getInterimRemaining t currentIteration i                            
+//                                                                  if overrideRemaining.Length > 0 then
+//                                                                    priorTask.completedWork <- overrideCompleted
+//                                                                                                |> List.last
+//                                                                                                |> (fun fc -> float (fc.postChangeeValue.ToString()))
+//                                                                 ())
+//                                                         
+//)
+
+//                                        if (overrideScheduled = true) then
+//                                            let overrideCompleted = 
+//                                                getInterimCompleted t developerLayout.currentLayoutIteration developerLayout.currentLayoutIterationWeek
+//                                            if (overrideCompleted.Length > 0) then
+//                                                completedWork <- overrideCompleted
+//                                                                 |> List.last
+//                                                                 |> (fun fc -> float (fc.postChangeValue.ToString()))
+//                                            let overrideRemaining = 
+//                                                getInterimRemaining t developerLayout.currentLayoutIteration developerLayout.currentLayoutIterationWeek
+//                                            if (overrideRemaining.Length > 0) then
+//                                                completedWork <- overrideRemaining
+//                                                                 |> List.last
+//                                                                 |> (fun fc -> float (fc.postChangeValue.ToString()))
+//                                            t.scheduled <- false;
