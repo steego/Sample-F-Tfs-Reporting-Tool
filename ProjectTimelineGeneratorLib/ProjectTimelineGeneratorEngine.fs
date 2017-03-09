@@ -141,7 +141,7 @@ type Class1() =
         let results = Async.RunSynchronously (getAsync<iterationResults>(iterationsUrl, name, password))
         results.value
                .GetEnumerator() 
-               |> EnumeratorToEnumerableEx<iterationData>
+               |> Seq.ofEnumeratorEx<iterationData>
 
     // fetches and returns a sequence of developer capacity info as defined in TFS
     let getIterationCapacities (name : string) (password : string) (id : string) =
@@ -150,7 +150,7 @@ type Class1() =
         let results = Async.RunSynchronously (getAsync<capacityResults>(capacitiesUrl, name, password))
         results.value
                .GetEnumerator() 
-               |> EnumeratorToEnumerableEx<capacityData>
+               |> Seq.ofEnumeratorEx<capacityData>
 
     // represents the parent TFS project containing our Features, User Stories and Tasks
     let project = commonStructureService.GetProjectFromName("Version 8")
@@ -164,7 +164,8 @@ type Class1() =
     // get the particular project associated with the R&D team
     let teamProjects = workItemStore.Projects
     let RDProject = 
-        EnumeratorToEnumerable<Project>(teamProjects.GetEnumerator())
+        teamProjects.GetEnumerator()        
+        |> Seq.ofEnumerator<Project>
         |> Seq.where (fun p -> p.Name = "Version 8")
         |> Seq.head
 
@@ -179,7 +180,7 @@ type Class1() =
 
             // we need to skip the intermediate <Children> tag
             let nodesList = root2017IterationsNode.ChildNodes.[0].ChildNodes.GetEnumerator()
-                                 |> EnumeratorToEnumerable<XmlNode>
+                                 |> Seq.ofEnumerator<XmlNode>
                                  |> Seq.toList
 
             // we are explicitly adding iteration structures for the final three iterations of 2016   
@@ -292,7 +293,7 @@ type Class1() =
                                     (DateTime.Parse(dayOff.start).Day <= weekEndDay.Day) &&
                                     (DateTime.Parse(dayOff.``end``).Day >= weekStartDay.Day))
                         .GetEnumerator()
-                    |> EnumeratorToEnumerableEx<dayOff>
+                    |> Seq.ofEnumeratorEx<dayOff>
                     |> Seq.map(fun dayOff -> let startDate = DateTime.Parse(dayOff.start, 
                                                                 null, DateTimeStyles.RoundtripKind)
                                              let endDate = DateTime.Parse(dayOff.``end``, 
@@ -407,7 +408,7 @@ type Class1() =
             
         // get list of fieldChanges by stepping through workItem's revisions and comparing each to the one before it                  
         let revisions = wi.Revisions.GetEnumerator()
-                        |> EnumeratorToEnumerable<Revision>
+                        |> Seq.ofEnumeratorEx<Revision>
                         |> Seq.windowed(2)
                         |> Seq.map(fun delta -> compareRevision delta.[0] delta.[1])
                         |> Seq.collect(fun delta -> delta)
@@ -438,7 +439,7 @@ type Class1() =
     // (there can also be child user stories)
     let getImmediateChildTasks(wi : WorkItem)  =
         let childLinks = wi.WorkItemLinks.GetEnumerator()
-                        |> EnumeratorToEnumerable<WorkItemLink>
+                        |> Seq.ofEnumerator<WorkItemLink>
                         |> Seq.where(fun wil -> wil.LinkTypeEnd.Name = "Child")
 
         let tasks = childLinks |> Seq.map(fun wil -> wil.TargetId)
@@ -487,7 +488,7 @@ type Class1() =
     // (whch can be either the top-level Feature or a parent User Stor)
     let getImmediateChildUserStories(wi : WorkItem)  =
         let childLinks = wi.WorkItemLinks.GetEnumerator()
-                        |> EnumeratorToEnumerable<WorkItemLink>
+                        |> Seq.ofEnumerator<WorkItemLink>
                         |> Seq.where(fun wil -> wil.LinkTypeEnd.Name = "Child")
 
         let userStories = childLinks |> Seq.map(fun wil -> wil.TargetId)
@@ -527,10 +528,10 @@ type Class1() =
 
     // now contruct a list of this program's representation of returned features
     let features = featureCollection.GetEnumerator()
-                    |> EnumeratorToEnumerable<WorkItem>
+                    |> Seq.ofEnumerator<WorkItem>
                     |> Seq.map(fun feat -> let childUserStories = 
                                                 feat.WorkItemLinks.GetEnumerator()
-                                                    |> EnumeratorToEnumerable<WorkItemLink>
+                                                    |> Seq.ofEnumerator<WorkItemLink>
                                                     |> Seq.map(fun wil -> wil.TargetId)
                                                     |> Seq.map(fun id -> workItemStore.GetWorkItem(id))
                                                     |> Seq.where(fun wi -> wi.Type.Name = "User Story")
@@ -540,7 +541,7 @@ type Class1() =
                                             
                                            let iterationNotes =
                                                 feat.WorkItemLinks.GetEnumerator()
-                                                    |> EnumeratorToEnumerable<WorkItemLink>
+                                                    |> Seq.ofEnumerator<WorkItemLink>
                                                     |> Seq.map(fun wil -> wil.TargetId)
                                                     |> Seq.map(fun id -> workItemStore.GetWorkItem(id))
                                                     |> Seq.where(fun wi -> ((wi.Type.Name = "Issue") &&
@@ -549,7 +550,7 @@ type Class1() =
 
                                            let projectedDates =
                                                 feat.WorkItemLinks.GetEnumerator()
-                                                    |> EnumeratorToEnumerable<WorkItemLink>
+                                                    |> Seq.ofEnumerator<WorkItemLink>
                                                     |> Seq.map(fun wil -> wil.TargetId)
                                                     |> Seq.map(fun id -> workItemStore.GetWorkItem(id))
                                                     |> Seq.where(fun wi -> ((wi.Type.Name = "Issue") &&
@@ -559,7 +560,7 @@ type Class1() =
                                             // used only for debugging to see list of possible fields
                                            let fields = if not (iterationNotes = []) then
                                                            iterationNotes.Head.Fields.GetEnumerator()
-                                                            |> EnumeratorToEnumerable<Field>
+                                                            |> Seq.ofEnumerator<Field>
                                                             |> Seq.map(fun f -> f.Name + ": " + (if (f.Value = null) then "" else f.Value.ToString()))
                                                             |> Seq.toList
                                                         else
@@ -577,7 +578,7 @@ type Class1() =
     // ususally not invoked, because very costly
     let printTaskFields (taskToBePrinted : task) =
         taskToBePrinted.task.Fields.GetEnumerator()
-            |> EnumeratorToEnumerable<Field>
+            |> Seq.ofEnumerator<Field>
             |> Seq.map(fun f -> if Object.ReferenceEquals(f.Value,null) then
                                     () 
                                 else
@@ -598,7 +599,7 @@ type Class1() =
     // (used to track developer commitments across projects and iteration weeks)
     let developerLayoutSchedules =
         developers.Values.GetEnumerator()
-        |> EnumeratorToEnumerableEx<developer>
+        |> Seq.ofEnumeratorEx<developer>
         |> Seq.map(fun d -> let remainingHours =
                                     getDeveloperIterationWeekHours d currentIteration.path 
                                         currentWeekInIteration

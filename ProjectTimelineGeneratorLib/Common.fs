@@ -29,17 +29,18 @@ let castAsWithException<'T> (o:obj) =
   | _ -> let errorMessage = "Unable to be cast as " + typedefof<'T>.ToString()
          raise (InvalidCast(errorMessage)) 
 
-let EnumeratorToEnumerable<'T when 'T : null> (src : IEnumerator) =
-    seq {    
-                while src.MoveNext() do 
-                    yield castAs<'T>(src.Current) 
-        }
+module Seq = 
+    let ofEnumerator<'T when 'T : null> (src : IEnumerator) =
+        seq {    
+                    while src.MoveNext() do 
+                        yield castAs<'T>(src.Current) 
+            }
 
-let EnumeratorToEnumerableEx<'T> (src : IEnumerator) =
-    seq {    
-                while src.MoveNext() do 
-                    yield castAsWithException<'T>(src.Current) 
-        }
+    let ofEnumeratorEx<'T> (src : IEnumerator) =
+        seq {    
+                    while src.MoveNext() do 
+                        yield castAsWithException<'T>(src.Current) 
+            }
 
 // used for serializing to and from Json
 let toString = System.Text.Encoding.ASCII.GetString
