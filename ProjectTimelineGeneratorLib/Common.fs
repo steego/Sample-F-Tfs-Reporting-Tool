@@ -46,16 +46,17 @@ module Seq =
 let toString = System.Text.Encoding.ASCII.GetString
 let toBytes (x : string) = System.Text.Encoding.ASCII.GetBytes x
 
-let serializeJson<'a> (x : 'a) =
-    let ser = new DataContractJsonSerializer(typedefof<'a>)
-    use stream = new MemoryStream()
-    ser.WriteObject(stream, x)
-    toString <| stream.ToArray()
+module Json = 
+    let serialize<'a> (x : 'a) =
+        let ser = new DataContractJsonSerializer(typedefof<'a>)
+        use stream = new MemoryStream()
+        ser.WriteObject(stream, x)
+        toString <| stream.ToArray()
 
-let deserializeJson<'a> (json : string) = 
-    let ser = new DataContractJsonSerializer(typedefof<'a>)
-    use stream = new MemoryStream(toBytes json)
-    ser.ReadObject(stream) :?> 'a
+    let deserialize<'a> (json : string) = 
+        let ser = new DataContractJsonSerializer(typedefof<'a>)
+        use stream = new MemoryStream(toBytes json)
+        ser.ReadObject(stream) :?> 'a
 
 // asynchronously execute a RESTful API Get call 
 let getAsync<'result> (url : string, name : string, password : string)  = async {
@@ -67,6 +68,6 @@ let getAsync<'result> (url : string, name : string, password : string)  = async 
     use! httpResponseMessage = client.GetAsync url |> Async.AwaitTask
     httpResponseMessage.EnsureSuccessStatusCode() |> ignore
     let! x = httpResponseMessage.Content.ReadAsStringAsync() |> Async.AwaitTask
-    let qResults = deserializeJson<'result> x;
+    let qResults = Json.deserialize<'result> x;
     return qResults
 } 
